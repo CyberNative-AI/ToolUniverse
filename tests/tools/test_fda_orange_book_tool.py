@@ -4,9 +4,17 @@ Unit tests for FDA Orange Book Tool.
 Tests drug approval information, patent data, exclusivity, and TE codes.
 """
 
+import os
+
 import pytest
 import json
 from tooluniverse import ToolUniverse
+
+# Patent and exclusivity lookups read a local copy of FDA's Orange Book data files.
+needs_orange_book_data = pytest.mark.skipif(
+    not os.environ.get("TOOLUNIVERSE_ORANGE_BOOK_DATA"),
+    reason="set TOOLUNIVERSE_ORANGE_BOOK_DATA to the Orange Book data files zip",
+)
 
 
 class TestFDAOrangeBookTool:
@@ -20,13 +28,17 @@ class TestFDAOrangeBookTool:
         return tu
     
     def test_orange_book_tools_load(self, tu):
-        """Verify all 6 Orange Book operations are registered."""
+        """Verify the Orange Book operations are registered.
+
+        Patent and exclusivity lookups load only when the data files are configured.
+        """
         assert hasattr(tu.tools, 'FDA_OrangeBook_search_drug')
         assert hasattr(tu.tools, 'FDA_OrangeBook_get_approval_history')
-        assert hasattr(tu.tools, 'FDA_OrangeBook_get_patent_info')
-        assert hasattr(tu.tools, 'FDA_OrangeBook_get_exclusivity')
         assert hasattr(tu.tools, 'FDA_OrangeBook_check_generic_availability')
         assert hasattr(tu.tools, 'FDA_OrangeBook_get_te_code')
+        configured = bool(os.environ.get("TOOLUNIVERSE_ORANGE_BOOK_DATA"))
+        assert hasattr(tu.tools, 'FDA_OrangeBook_get_patent_info') == configured
+        assert hasattr(tu.tools, 'FDA_OrangeBook_get_exclusivity') == configured
     
     def test_search_drug_by_brand_name(self, tu):
         """Test searching for drug by brand name."""
@@ -104,32 +116,36 @@ class TestFDAOrangeBookTool:
         for te in result["data"].get("te_codes", [])[:3]:
             print(f"   {te.get('brand_name')}: {te.get('te_code')} - {te.get('interpretation')}")
     
+    @needs_orange_book_data
     def test_get_patent_info(self, tu):
-        """Test getting patent information."""
+        """Test getting patent information from the Orange Book data files."""
         result = tu.tools.FDA_OrangeBook_get_patent_info(
             operation="get_patent_info",
-            brand_name="ADVIL"
+            brand_name="LYNPARZA"
         )
         
         assert result.get("status") == "success"
         assert isinstance(result.get("data"), dict)
-        assert "download_url" in result["data"]
-        print(f"\n✅ Patent info guidance provided")
-        print(f"   Download URL: {result['data'].get('download_url')}")
+        assert result["data"]["patent_count"] > 0
+        patents = [p for prod in result["data"]["products"] for p in prod["patents"]]
+        assert any(len(p["use_codes"]) > 1 for p in patents)
+        print(f"\n✅ {result['data']['patent_count']} patent listings")
     
+    @needs_orange_book_data
     def test_get_exclusivity(self, tu):
-        """Test getting exclusivity information."""
+        """Test getting exclusivity information from the Orange Book data files."""
         result = tu.tools.FDA_OrangeBook_get_exclusivity(
             operation="get_exclusivity",
-            brand_name="ADVIL"
+            application_number="NDA212306"
         )
         
         assert result.get("status") == "success"
         assert isinstance(result.get("data"), dict)
-        assert "exclusivity_types" in result["data"]
-        print(f"\n✅ Exclusivity types:")
-        for exc_type in result["data"].get("exclusivity_types", []):
-            print(f"   - {exc_type}")
+        assert result["data"]["exclusivity_count"] > 0
+        print(f"\n✅ Exclusivity:")
+        for product in result["data"].get("products", []):
+            for exc in product["exclusivity"]:
+                print(f"   {product['product_number']} {exc['code']} {exc['expiration_date']}")
     
     def test_error_handling_missing_params(self, tu):
         """Test error handling when parameters are missing."""

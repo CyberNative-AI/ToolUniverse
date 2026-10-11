@@ -634,6 +634,18 @@
     ]
   },
   {
+    "name": "TOOLUNIVERSE_ORANGE_BOOK_DATA",
+    "requirement": "required",
+    "type": "path",
+    "domain": "Drugs & Chemistry",
+    "register_url": "https://www.fda.gov/drugs/drug-approvals-and-databases/orange-book-data-files",
+    "purpose": "Local copy of FDA's Orange Book data files: path to the downloaded zip or the folder it was extracted into.",
+    "without": "FDA_OrangeBook_get_patent_info and FDA_OrangeBook_get_exclusivity are not loaded; the other Orange Book tools use openFDA and still work.",
+    "used_by": [
+      "fda_orange_book_tools.json"
+    ]
+  },
+  {
     "name": "TXAGENT_MCP_SERVER_HOST",
     "requirement": "required",
     "type": "endpoint",

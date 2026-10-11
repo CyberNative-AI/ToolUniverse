@@ -67,6 +67,13 @@ MUST_DECLARE = {
             "HFInference_detect_objects",
         },
     ),
+    # Patents and exclusivity are read from a local copy of FDA's Orange Book
+    # data files; fda.gov redirects a scripted download to an abuse-detection
+    # page, so the tool does not fetch them.
+    "fda_orange_book_tools.json": (
+        ["TOOLUNIVERSE_ORANGE_BOOK_DATA"],
+        {"FDA_OrangeBook_get_patent_info", "FDA_OrangeBook_get_exclusivity"},
+    ),
 }
 
 # Verified to work without a credential; declaring one would skip them.
@@ -76,6 +83,13 @@ MUST_NOT_DECLARE = {
     # while every other endpoint answers 401. Gating the whole file would
     # retire a working tool.
     "veupathdb_tools.json": {"VEuPathDB_list_record_types"},
+    # The other four Orange Book tools query openFDA and need no local files.
+    "fda_orange_book_tools.json": {
+        "FDA_OrangeBook_search_drug",
+        "FDA_OrangeBook_get_approval_history",
+        "FDA_OrangeBook_check_generic_availability",
+        "FDA_OrangeBook_get_te_code",
+    },
 }
 
 # VEuPathDB gates four of its five endpoints. Verified by calling them: the
