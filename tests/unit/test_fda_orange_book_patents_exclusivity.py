@@ -19,7 +19,7 @@ from unittest.mock import patch
 
 import pytest
 
-from tooluniverse import fda_orange_book_tool
+from tooluniverse import ToolUniverse, fda_orange_book_tool
 from tooluniverse.fda_orange_book_tool import FDAOrangeBookTool
 
 _PRODUCTS = [
@@ -161,10 +161,21 @@ def test_missing_and_bad_arguments(ob_zip):
     assert "Unrecognized" in tool.run({"application_number": "BLA125514"})["error"]
 
 
-def test_not_configured_is_error_not_empty_success():
-    result = _tool("FDA_OrangeBook_get_patent_info").run({"brand_name": "LYNPARZA"})
+@pytest.mark.parametrize(
+    "name", ["FDA_OrangeBook_get_patent_info", "FDA_OrangeBook_get_exclusivity"]
+)
+def test_not_configured_tool_loads_and_errors_not_empty_success(name):
+    # A data path is not an API key: the tool stays in the catalog and the
+    # call says what to set, rather than the tool silently not loading.
+    tu = ToolUniverse()
+    tu.load_tools(include_tools=[name])
+    assert name in tu.all_tool_dict
+
+    result = tu.run_one_function(
+        {"name": name, "arguments": {"brand_name": "LYNPARZA"}}
+    )
     assert result["status"] == "error"
-    assert fda_orange_book_tool.ORANGE_BOOK_ENV in result["error"]
+    assert f"{fda_orange_book_tool.ORANGE_BOOK_ENV} is not set" in result["error"]
     assert fda_orange_book_tool.ORANGE_BOOK_PAGE_URL in result["error"]
 
 

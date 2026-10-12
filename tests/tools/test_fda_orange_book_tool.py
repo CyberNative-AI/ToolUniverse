@@ -28,17 +28,13 @@ class TestFDAOrangeBookTool:
         return tu
     
     def test_orange_book_tools_load(self, tu):
-        """Verify the Orange Book operations are registered.
-
-        Patent and exclusivity lookups load only when the data files are configured.
-        """
+        """Verify all 6 Orange Book operations are registered."""
         assert hasattr(tu.tools, 'FDA_OrangeBook_search_drug')
         assert hasattr(tu.tools, 'FDA_OrangeBook_get_approval_history')
+        assert hasattr(tu.tools, 'FDA_OrangeBook_get_patent_info')
+        assert hasattr(tu.tools, 'FDA_OrangeBook_get_exclusivity')
         assert hasattr(tu.tools, 'FDA_OrangeBook_check_generic_availability')
         assert hasattr(tu.tools, 'FDA_OrangeBook_get_te_code')
-        configured = bool(os.environ.get("TOOLUNIVERSE_ORANGE_BOOK_DATA"))
-        assert hasattr(tu.tools, 'FDA_OrangeBook_get_patent_info') == configured
-        assert hasattr(tu.tools, 'FDA_OrangeBook_get_exclusivity') == configured
     
     def test_search_drug_by_brand_name(self, tu):
         """Test searching for drug by brand name."""

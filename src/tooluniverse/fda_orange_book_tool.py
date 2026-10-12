@@ -340,14 +340,18 @@ class FDAOrangeBookTool(BaseTool):
                 dates.append(datetime(*info.date_time).date().isoformat())
         return raw, dates
 
-    def _load_orange_book(self) -> Optional[Dict[str, Any]]:
-        """Index the local Orange Book data files; None when they are not configured.
+    def _load_orange_book(self) -> Dict[str, Any]:
+        """Index the local Orange Book data files.
 
         The index is cached per process and rebuilt when the file or folder changes.
         """
         configured = os.environ.get(ORANGE_BOOK_ENV, "").strip()
         if not configured:
-            return None
+            raise FileNotFoundError(
+                f"{ORANGE_BOOK_ENV} is not set; download the Orange Book data files "
+                f"zip from {ORANGE_BOOK_PAGE_URL} and set {ORANGE_BOOK_ENV} to the "
+                "zip or to the folder it was extracted into"
+            )
         path = Path(configured).expanduser()
         if not path.exists():
             raise FileNotFoundError(
@@ -417,17 +421,6 @@ class FDAOrangeBookTool(BaseTool):
             return data
 
     @staticmethod
-    def _orange_book_not_configured() -> Dict[str, Any]:
-        return {
-            "status": "error",
-            "error": (
-                "Orange Book data files are not configured. Download the zip from "
-                f"{ORANGE_BOOK_PAGE_URL} and set {ORANGE_BOOK_ENV} to the zip or to "
-                "the folder it was extracted into."
-            ),
-        }
-
-    @staticmethod
     def _parse_application_number(value: str) -> Optional[Tuple[Optional[str], str]]:
         """'NDA021695', 'N021695', '021695' or '21695' -> ('N'|'A'|None, '021695')."""
         match = re.fullmatch(
@@ -481,8 +474,6 @@ class FDAOrangeBookTool(BaseTool):
         """Patents listed in the Orange Book for each matching product."""
         try:
             ob = self._load_orange_book()
-            if ob is None:
-                return self._orange_book_not_configured()
             keys, error = self._match_ob_products(ob, arguments)
             if error:
                 return {"status": "error", "error": error}
@@ -519,8 +510,6 @@ class FDAOrangeBookTool(BaseTool):
         """Exclusivity codes and expiration dates listed for each matching product."""
         try:
             ob = self._load_orange_book()
-            if ob is None:
-                return self._orange_book_not_configured()
             keys, error = self._match_ob_products(ob, arguments)
             if error:
                 return {"status": "error", "error": error}

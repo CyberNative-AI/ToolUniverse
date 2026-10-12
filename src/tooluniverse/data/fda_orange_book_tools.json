@@ -242,18 +242,6 @@
         "application_number": "NDA021695"
       }
     ],
-    "required_api_keys": [
-      "TOOLUNIVERSE_ORANGE_BOOK_DATA"
-    ],
-    "api_key_info": {
-      "TOOLUNIVERSE_ORANGE_BOOK_DATA": {
-        "domain": "Drugs & Chemistry",
-        "type": "path",
-        "register_url": "https://www.fda.gov/drugs/drug-approvals-and-databases/orange-book-data-files",
-        "purpose": "Local copy of FDA's Orange Book data files: path to the downloaded zip or the folder it was extracted into.",
-        "without": "FDA_OrangeBook_get_patent_info and FDA_OrangeBook_get_exclusivity are not loaded; the other Orange Book tools use openFDA and still work."
-      }
-    },
     "fields": {
       "operation": "get_patent_info"
     }
@@ -360,9 +348,6 @@
       {
         "application_number": "NDA212306"
       }
-    ],
-    "required_api_keys": [
-      "TOOLUNIVERSE_ORANGE_BOOK_DATA"
     ],
     "fields": {
       "operation": "get_exclusivity"
